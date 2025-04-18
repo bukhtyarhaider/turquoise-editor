@@ -20,6 +20,9 @@ import {
   XMarkIcon,
   TrashIcon,
   InformationCircleIcon,
+  Bars3BottomLeftIcon,
+  Bars3Icon,
+  Bars3BottomRightIcon,
 } from "@heroicons/react/24/outline";
 import { HexColorPicker } from "react-colorful";
 import WebFont from "webfontloader";
@@ -36,7 +39,6 @@ const Editor: React.FC = () => {
   const textRefs = useRef<{ [key: string]: Konva.Text }>({});
   const trRef = useRef<Konva.Transformer | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const textInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [storageStatus, setStorageStatus] = useState<{
@@ -45,12 +47,14 @@ const Editor: React.FC = () => {
   } | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   const [showFabMenu, setShowFabMenu] = useState(false);
-  const [tempText, setTempText] = useState("");
+  const [tempText, setTempText] = useState<string | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [controlsPosition, setControlsPosition] = useState({ x: 0, y: 0 });
   const [showExportPopup, setShowExportPopup] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showTextOverlay, setShowTextOverlay] = useState(false);
+  const [hiddenTextId, setHiddenTextId] = useState<string | null>(null);
 
   const stageSize = useStageSize(containerRef);
   const {
@@ -114,7 +118,8 @@ const Editor: React.FC = () => {
       !isMobile ||
       !texts.length ||
       !selectedTextId ||
-      !textRefs.current[selectedTextId]
+      !textRefs.current[selectedTextId] ||
+      !showTextOverlay
     )
       return;
 
@@ -133,7 +138,7 @@ const Editor: React.FC = () => {
         });
       }
     }
-  }, [selectedTextId, isMobile, texts, stageSize]);
+  }, [selectedTextId, isMobile, texts, stageSize, showTextOverlay]);
 
   // Auto-save
   useEffect(() => {
@@ -207,7 +212,8 @@ const Editor: React.FC = () => {
     if (
       selectedTextId &&
       textRefs.current[selectedTextId] &&
-      stageRef.current
+      stageRef.current &&
+      !isMobile
     ) {
       const node = textRefs.current[selectedTextId];
       const stage = stageRef.current;
@@ -225,7 +231,7 @@ const Editor: React.FC = () => {
         y: stageRect.top + newY,
       });
     }
-  }, [selectedTextId, texts, stageSize]);
+  }, [selectedTextId, texts, stageSize, isMobile]);
 
   // Handle arrow key navigation for text selection
   useEffect(() => {
@@ -329,26 +335,52 @@ const Editor: React.FC = () => {
     [handleImageUpload, setSelectedTextId]
   );
 
-  const handleTextTap = (textId: string) => {
-    setSelectedTextId(textId);
-    if (isMobile && textInputRef.current) {
-      const selectedText = texts.find((t) => t.id === textId);
-      setTempText(selectedText?.text || "");
-      textInputRef.current.focus();
-    }
-  };
+  const handleTextTap = useCallback(
+    (textId: string) => {
+      if (isMobile) {
+        setSelectedTextId(textId);
+        setShowTextOverlay(false);
+      }
+    },
+    [isMobile, setSelectedTextId]
+  );
+
+  const handleTextDblTap = useCallback(
+    (textId: string) => {
+      if (isMobile) {
+        const selectedText = texts.find((t) => t.id === textId);
+        if (selectedText) {
+          setTempText(selectedText.text);
+          setSelectedTextId(textId);
+          setShowTextOverlay(true);
+          setHiddenTextId(textId);
+          trRef.current?.visible(false);
+          trRef.current?.getLayer()?.batchDraw();
+        }
+      }
+    },
+    [isMobile, texts, setTempText, setSelectedTextId]
+  );
 
   const handleMobileInputChange = useCallback(
-    (e: { target: { value: string } }) => {
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const newValue = e.target.value;
       setTempText(newValue);
-
       if (selectedTextId) {
         updateTextProperty(selectedTextId, "text", newValue);
       }
     },
     [selectedTextId, updateTextProperty]
   );
+
+  const handleMobileInputDone = () => {
+    trRef.current?.visible(true);
+    trRef.current?.getLayer()?.batchDraw();
+    setSelectedTextId(null);
+    setShowTextOverlay(false);
+    setTempText(null);
+    setHiddenTextId(null);
+  };
 
   const hasContent = !!bgRemovedImg && texts.length > 0;
   const selectedText = texts.find((text) => text.id === selectedTextId) || null;
@@ -483,34 +515,48 @@ const Editor: React.FC = () => {
               )}
             </Layer>
             <Layer>
-              {texts.map((text) => (
-                <KonvaText
-                  key={text.id}
-                  text={text.text}
-                  x={text.x}
-                  y={text.y}
-                  fontSize={text.fontSize}
-                  fontFamily={text.fontFamily}
-                  fill={text.fill}
-                  opacity={text.opacity}
-                  draggable
-                  ref={(node) => {
-                    if (node) textRefs.current[text.id] = node;
-                  }}
-                  onClick={(e) => {
-                    if (!isMobile) {
-                      e.cancelBubble = true;
-                      setSelectedTextId(text.id);
-                    }
-                  }}
-                  onTap={() => handleTextTap(text.id)}
-                  onDragEnd={(e) => handleDragEnd(e, text.id)}
-                  onTransformEnd={() =>
-                    handleTransformEnd(text.id, textRefs.current[text.id])
+              {texts.map(
+                (text) =>
+                  text.id !== hiddenTextId && (
+                    <KonvaText
+                      key={text.id}
+                      text={text.text}
+                      x={text.x}
+                      y={text.y}
+                      fontSize={text.fontSize}
+                      fontFamily={text.fontFamily}
+                      fill={text.fill}
+                      opacity={text.opacity}
+                      align={text.align || "center"}
+                      draggable
+                      ref={(node) => {
+                        if (node) textRefs.current[text.id] = node;
+                      }}
+                      onClick={(e) => {
+                        if (!isMobile) {
+                          e.cancelBubble = true;
+                          setSelectedTextId(text.id);
+                        }
+                      }}
+                      onTap={() => handleTextTap(text.id)}
+                      onDblTap={() => handleTextDblTap(text.id)}
+                      onDragEnd={(e) => handleDragEnd(e, text.id)}
+                      onTransformEnd={() =>
+                        handleTransformEnd(text.id, textRefs.current[text.id])
+                      }
+                    />
+                  )
+              )}
+              <Transformer
+                ref={trRef}
+                enabled={!!selectedTextId}
+                boundBoxFunc={(oldBox, newBox) => {
+                  if (newBox.width < 20 || newBox.height < 20) {
+                    return oldBox;
                   }
-                />
-              ))}
-              <Transformer ref={trRef} enabled={!isMobile} />
+                  return newBox;
+                }}
+              />
             </Layer>
             <Layer>
               {bgRemovedImg && (
@@ -533,18 +579,6 @@ const Editor: React.FC = () => {
             className="hidden"
             onChange={handleFileInputChange}
           />
-
-          {isMobile && (
-            <input
-              ref={textInputRef}
-              type="text"
-              value={tempText}
-              onChange={handleMobileInputChange}
-              aria-label="Mobile text input"
-              className="fixed -top-[1000px] -left-[1000px] opacity-0"
-              enterKeyHint="done"
-            />
-          )}
 
           {!originalImg && !isLoading && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -645,121 +679,203 @@ const Editor: React.FC = () => {
               )}
             </div>
 
-            {selectedText && (
-              <div className="fixed top-14 left-2 right-2 bg-white p-3 rounded-xl shadow-lg flex items-center justify-between z-50 transition-all duration-200">
-                <div className="flex items-center gap-2">
-                  <div className="relative">
+            {selectedText && showTextOverlay && (
+              <>
+                {/* Overlay for Text Input */}
+                <div
+                  className="fixed inset-0 flex flex-col animate-[slideIn_0.3s_ease-out] z-50"
+                  style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+                >
+                  <div className="flex justify-between items-center p-4 bg-transparent">
                     <button
-                      onClick={() => setShowColorPicker((prev) => !prev)}
-                      className="w-8 h-8 rounded-full border border-brand-200 shadow-sm focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-all hover:border-brand-400"
-                      style={{ backgroundColor: selectedText.fill }}
-                      aria-label="Open color picker"
-                    />
-                    {showColorPicker && (
-                      <div className="absolute top-12 left-0 z-50 bg-white p-4 rounded-lg shadow-xl border border-brand-200">
-                        <HexColorPicker
-                          color={selectedText.fill}
-                          onChange={(color: string | number) =>
-                            updateTextProperty(selectedText.id, "fill", color)
-                          }
-                          className="w-30"
-                        />
-                        <div>
-                          {colorPalette.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              <span className="text-xs text-brand-700 block w-full">
-                                Suggested Colors:
-                              </span>
-                              {colorPalette.map((color, index) => (
-                                <button
-                                  key={index}
-                                  onClick={() =>
-                                    updateTextProperty(
-                                      selectedText.id,
-                                      "fill",
-                                      color
-                                    )
-                                  }
-                                  className="w-6 h-6 rounded-full border border-brand-200 hover:border-brand-500 focus:ring-2 focus:ring-brand-300"
-                                  style={{ backgroundColor: color }}
-                                  aria-label={`Apply color ${color}`}
-                                  title={color}
-                                />
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          onClick={() => setShowColorPicker(false)}
-                          className="mt-3 w-full text-brand-500 hover:text-brand-600 text-sm flex items-center justify-center gap-1 transition-all"
-                          aria-label="Close color picker"
-                        >
-                          <XMarkIcon className="w-4 h-4" /> Close
-                        </button>
-                      </div>
-                    )}
+                      onClick={() => handleMobileInputDone()}
+                      className="text-white text-lg font-semibold"
+                      aria-label="Cancel text editing"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleMobileInputDone}
+                      className="text-white text-lg font-semibold"
+                      aria-label="Save text"
+                    >
+                      Done
+                    </button>
                   </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.1"
-                    value={selectedText.opacity}
-                    onChange={(e) =>
-                      updateTextProperty(
-                        selectedText.id,
-                        "opacity",
-                        parseFloat(e.target.value)
-                      )
-                    }
-                    className="w-20 accent-brand-500"
-                    aria-label="Text opacity"
-                  />
+                  <div className="flex-1 flex items-center justify-center px-4">
+                    <textarea
+                      value={tempText || ""}
+                      onChange={handleMobileInputChange}
+                      placeholder="Type your text..."
+                      className="w-full max-w-md text-3xl font-bold bg-transparent border-none outline-none resize-none text-center leading-tight"
+                      style={{
+                        fontFamily: selectedText.fontFamily,
+                        color: selectedText.fill,
+                        textAlign: selectedText.align || "center",
+                      }}
+                      rows={4}
+                      autoFocus
+                      aria-label="Mobile text input"
+                    />
+                  </div>
+                  <div className="bg-white p-4 rounded-t-xl shadow-lg">
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex gap-2 items-center">
+                        <button
+                          onClick={() =>
+                            updateTextProperty(selectedText.id, "align", "left")
+                          }
+                          className={`p-2 rounded-full ${
+                            selectedText.align === "left"
+                              ? "bg-brand-500 text-white"
+                              : "bg-gray-200 text-brand-700"
+                          }`}
+                          aria-label="Align left"
+                        >
+                          <Bars3BottomLeftIcon className="w-6 h-6" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            updateTextProperty(
+                              selectedText.id,
+                              "align",
+                              "center"
+                            )
+                          }
+                          className={`p-2 rounded-full ${
+                            selectedText.align === "center"
+                              ? "bg-brand-500 text-white"
+                              : "bg-gray-200 text-brand-700"
+                          }`}
+                          aria-label="Align center"
+                        >
+                          <Bars3Icon className="w-6 h-6" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            updateTextProperty(
+                              selectedText.id,
+                              "align",
+                              "right"
+                            )
+                          }
+                          className={`p-2 rounded-full ${
+                            selectedText.align === "right"
+                              ? "bg-brand-500 text-white"
+                              : "bg-gray-200 text-brand-700"
+                          }`}
+                          aria-label="Align right"
+                        >
+                          <Bars3BottomRightIcon className="w-6 h-6" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            deleteText(selectedText.id);
+                            setSelectedTextId(null);
+                            setShowTextOverlay(false);
+                            setHiddenTextId(null);
+                          }}
+                          className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600"
+                          aria-label="Delete text"
+                        >
+                          <TrashIcon className="w-6 h-6" />
+                        </button>
+                        <input
+                          type="range"
+                          min="0"
+                          max="1"
+                          step="0.1"
+                          value={selectedText.opacity || 1}
+                          onChange={(e) => {
+                            const newOpacity = parseFloat(e.target.value);
+                            updateTextProperty(
+                              selectedText.id,
+                              "opacity",
+                              newOpacity
+                            );
+                          }}
+                          className="w-20 accent-brand-500"
+                          aria-label="Text opacity"
+                        />
+                      </div>
+                      <div className="relative">
+                        <button
+                          onClick={() => setShowColorPicker((prev) => !prev)}
+                          className="w-8 h-8 rounded-full border border-brand-200 shadow-sm"
+                          style={{ backgroundColor: selectedText.fill }}
+                          aria-label="Open color picker"
+                        />
+                        {showColorPicker && (
+                          <div className="absolute bottom-12 right-0 z-50 bg-white p-4 rounded-lg shadow-xl border border-brand-200">
+                            <HexColorPicker
+                              color={selectedText.fill}
+                              onChange={(color) =>
+                                updateTextProperty(
+                                  selectedText.id,
+                                  "fill",
+                                  color
+                                )
+                              }
+                              className="w-30"
+                            />
+                            {colorPalette.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                <span className="text-xs text-brand-700 block[0]. block w-full">
+                                  Suggested Colors:
+                                </span>
+                                {colorPalette.map((color, index) => (
+                                  <button
+                                    key={index}
+                                    onClick={() =>
+                                      updateTextProperty(
+                                        selectedText.id,
+                                        "fill",
+                                        color
+                                      )
+                                    }
+                                    className="w-6 h-6 rounded-full border border-brand-200 hover:border-brand-500"
+                                    style={{ backgroundColor: color }}
+                                    aria-label={`Apply color ${color}`}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                            <button
+                              onClick={() => setShowColorPicker(false)}
+                              className="mt-3 w-full text-brand-500 hover:text-brand-600 text-sm flex items-center justify-center gap-1"
+                              aria-label="Close color picker"
+                            >
+                              <XMarkIcon className="w-4 h-4" /> Close
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex space-x-3 overflow-x-auto">
+                      {FONTS.map((font, index) => (
+                        <button
+                          key={`${font}-${index}`}
+                          onClick={() =>
+                            updateTextProperty(
+                              selectedText.id,
+                              "fontFamily",
+                              font
+                            )
+                          }
+                          style={{ fontFamily: font }}
+                          className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all ${
+                            selectedText.fontFamily === font
+                              ? "bg-brand-500 text-white"
+                              : "bg-gray-100 text-brand-700 hover:bg-brand-50"
+                          }`}
+                        >
+                          {font}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      deleteText(selectedText.id);
-                      setSelectedTextId(null);
-                    }}
-                    className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600"
-                    aria-label="Delete text"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => setSelectedTextId(null)}
-                    className="p-2 text-brand-500 hover:text-brand-600"
-                    aria-label="Close toolbar"
-                  >
-                    <XMarkIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {selectedText && (
-              <div
-                className="fixed left-0 right-0 bottom-0 p-2 bg-white flex space-x-3 overflow-x-auto shadow-lg z-50"
-                style={{ bottom: `${keyboardHeight}px`, maxHeight: "100px" }}
-              >
-                {FONTS.map((font, index) => (
-                  <button
-                    key={`${font}-${index}`}
-                    onClick={() =>
-                      updateTextProperty(selectedText.id, "fontFamily", font)
-                    }
-                    style={{ fontFamily: font }}
-                    className={`px-4 py-2 rounded-lg text-sm whitespace-nowrap transition-all ${
-                      selectedText.fontFamily === font
-                        ? "bg-brand-500 text-white"
-                        : "bg-gray-100 text-brand-700 hover:bg-brand-50"
-                    }`}
-                  >
-                    {font}
-                  </button>
-                ))}
-              </div>
+              </>
             )}
           </>
         )}
