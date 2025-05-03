@@ -684,19 +684,19 @@ const Editor: React.FC = () => {
                 {/* Overlay for Text Input */}
                 <div
                   className="fixed inset-0 flex flex-col animate-[slideIn_0.3s_ease-out] z-50"
-                  style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+                  style={{ backgroundColor: "rgba(0, 0, 0, 0.9)" }}
                 >
                   <div className="flex justify-between items-center p-4 bg-transparent">
                     <button
                       onClick={() => handleMobileInputDone()}
-                      className="text-white text-lg font-semibold"
+                      className="text-black text-lg font-semibold bg-white rounded-full px-4 py-2"
                       aria-label="Cancel text editing"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleMobileInputDone}
-                      className="text-white text-lg font-semibold"
+                      className="text-black text-lg font-semibold bg-white rounded-full px-4 py-2"
                       aria-label="Save text"
                     >
                       Done
@@ -712,6 +712,7 @@ const Editor: React.FC = () => {
                         fontFamily: selectedText.fontFamily,
                         color: selectedText.fill,
                         textAlign: selectedText.align || "center",
+                        opacity: selectedText.opacity || 1,
                       }}
                       rows={4}
                       autoFocus
@@ -851,7 +852,7 @@ const Editor: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex space-x-3 overflow-x-auto">
+                    <div className="flex space-x-3 pb-2 overflow-x-auto">
                       {FONTS.map((font, index) => (
                         <button
                           key={`${font}-${index}`}
