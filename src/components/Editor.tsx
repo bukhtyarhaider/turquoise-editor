@@ -378,6 +378,7 @@ const Editor: React.FC = () => {
     trRef.current?.getLayer()?.batchDraw();
     setSelectedTextId(null);
     setShowTextOverlay(false);
+    setShowColorPicker(false);
     setTempText(null);
     setHiddenTextId(null);
   };
