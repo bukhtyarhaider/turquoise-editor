@@ -683,10 +683,7 @@ const Editor: React.FC = () => {
             {selectedText && showTextOverlay && (
               <>
                 {/* Overlay for Text Input */}
-                <div
-                  className="fixed inset-0 flex flex-col animate-[slideIn_0.3s_ease-out] z-50"
-                  style={{ backgroundColor: "rgba(0, 0, 0, 0.9)" }}
-                >
+                <div className="fixed inset-0 flex flex-col z-50 backdrop-blur-sm bg-black/30">
                   <div className="flex justify-between items-center p-4 bg-transparent">
                     <button
                       onClick={() => handleMobileInputDone()}
@@ -853,7 +850,7 @@ const Editor: React.FC = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex space-x-3 pb-2 overflow-x-auto">
+                    <div className="flex space-x-3 pb-4 overflow-x-auto">
                       {FONTS.map((font, index) => (
                         <button
                           key={`${font}-${index}`}
