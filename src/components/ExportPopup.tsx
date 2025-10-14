@@ -1,5 +1,5 @@
 import React from "react";
-import { DocumentCheckIcon } from "@heroicons/react/24/outline";
+import { FileCheck } from "lucide-react";
 
 interface ExportPopupProps {
   isOpen: boolean;
@@ -17,7 +17,7 @@ const ExportPopup: React.FC<ExportPopupProps> = ({
   return (
     <div className="fixed inset-0 bg-brand-500 bg-opacity-20 flex items-center justify-center z-100">
       <div className="bg-white rounded-xl p-6 w-80 text-center shadow-lg animate-[fadeIn_0.3s_ease-out]">
-        <DocumentCheckIcon className="w-12 h-12 mx-auto text-brand-500 mb-4" />
+        <FileCheck className="w-12 h-12 mx-auto text-brand-500 mb-4" />
         <h3 className="text-xl font-bold text-brand-700 mb-2">
           Image Exported!
         </h3>

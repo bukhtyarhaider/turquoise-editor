@@ -15,6 +15,8 @@ interface TextProperties {
   fontFamily: string;
   fill: string;
   opacity: number;
+  align?: "left" | "center" | "right";
+  gradient?: boolean;
 }
 
 interface StoredImage {
