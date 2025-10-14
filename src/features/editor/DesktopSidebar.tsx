@@ -1,10 +1,6 @@
 import React from "react";
 import { Button } from "../../ui/Button";
-import {
-  PlusIcon,
-  DocumentCheckIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
+import { Plus, FileCheck, Trash2 } from "lucide-react";
 import { db } from "../../lib/db";
 import TextList from "../../components/TextList";
 import { storageService } from "../../services/storageService";
@@ -57,7 +53,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
       <Button
         onClick={addText}
         disabled={!hasImage}
-        icon={<PlusIcon className="w-5 h-5" />}
+        icon={<Plus className="w-5 h-5" />}
         variant="primary"
         fullWidth
       >
@@ -77,7 +73,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
         <Button
           onClick={handleSave}
           disabled={!hasContent}
-          icon={<DocumentCheckIcon className="w-5 h-5" />}
+          icon={<FileCheck className="w-5 h-5" />}
           variant="primary"
           fullWidth
         >
@@ -86,7 +82,7 @@ export const DesktopSidebar: React.FC<DesktopSidebarProps> = ({
 
         <Button
           onClick={handleReset}
-          icon={<TrashIcon className="w-4 h-4" />}
+          icon={<Trash2 className="w-4 h-4" />}
           variant="ghost"
           size="sm"
           fullWidth

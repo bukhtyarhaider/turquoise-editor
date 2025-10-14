@@ -20,12 +20,7 @@ import Header from "./Header";
 import Loader from "./Loader";
 import AboutModal from "./AboutModal";
 
-import {
-  DocumentCheckIcon,
-  InformationCircleIcon,
-  TrashIcon,
-  ArrowUpTrayIcon,
-} from "@heroicons/react/24/outline";
+import { FileCheck, Info, Trash2, Upload } from "lucide-react";
 
 import { FONTS } from "../constants/fonts";
 import { db } from "../lib/db";
@@ -388,18 +383,18 @@ const Editor: React.FC = () => {
       disabled: !bgRemovedImg,
     },
     {
-      icon: <DocumentCheckIcon className="w-5 h-5" />,
+      icon: <FileCheck className="w-5 h-5" />,
       label: "Export image",
       onClick: handleSave,
       disabled: !hasContent,
     },
     {
-      icon: <InformationCircleIcon className="w-5 h-5" />,
+      icon: <Info className="w-5 h-5" />,
       label: "About",
       onClick: () => setShowAboutModal(true),
     },
     {
-      icon: <TrashIcon className="w-5 h-5" />,
+      icon: <Trash2 className="w-5 h-5" />,
       label: "Reset workspace",
       onClick: handleReset,
       variant: "danger" as const,
@@ -535,7 +530,7 @@ const Editor: React.FC = () => {
           {!originalImg && !isLoading && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="text-center text-brand-500">
-                <ArrowUpTrayIcon className="w-12 h-12 mx-auto mb-2" />
+                <Upload className="w-12 h-12 mx-auto mb-2" />
                 <p className="text-base font-medium">
                   {isDraggingOver ? "Drop image here" : "Tap or drag to upload"}
                 </p>

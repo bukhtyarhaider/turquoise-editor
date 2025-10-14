@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  XMarkIcon,
-  TrashIcon,
-  Bars3BottomLeftIcon,
-  Bars3Icon,
-  Bars3BottomRightIcon,
-} from "@heroicons/react/24/outline";
+import { X, Trash2, AlignLeft, AlignCenter, AlignRight } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import { FONTS } from "../../constants/fonts";
 
@@ -93,7 +87,7 @@ export const MobileTextOverlay: React.FC<MobileTextOverlayProps> = ({
               }`}
               aria-label="Align left"
             >
-              <Bars3BottomLeftIcon className="w-6 h-6" />
+              <AlignLeft className="w-6 h-6" />
             </button>
             <button
               onClick={() =>
@@ -106,7 +100,7 @@ export const MobileTextOverlay: React.FC<MobileTextOverlayProps> = ({
               }`}
               aria-label="Align center"
             >
-              <Bars3Icon className="w-6 h-6" />
+              <AlignCenter className="w-6 h-6" />
             </button>
             <button
               onClick={() =>
@@ -119,21 +113,15 @@ export const MobileTextOverlay: React.FC<MobileTextOverlayProps> = ({
               }`}
               aria-label="Align right"
             >
-              <Bars3BottomRightIcon className="w-6 h-6" />
+              <AlignRight className="w-6 h-6" />
             </button>
-
             {/* Delete Button */}
             <button
-              onClick={() => {
-                deleteText(selectedText.id);
-                onDone();
-              }}
-              className="p-2 rounded-full bg-red-500 text-white hover:bg-red-600"
-              aria-label="Delete text"
+              onClick={() => deleteText(selectedText.id)}
+              className="flex-1 flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg"
             >
-              <TrashIcon className="w-6 h-6" />
-            </button>
-
+              <Trash2 className="w-6 h-6" />
+            </button>{" "}
             {/* Opacity Slider */}
             <input
               type="range"
@@ -190,7 +178,7 @@ export const MobileTextOverlay: React.FC<MobileTextOverlayProps> = ({
                   className="mt-3 w-full text-brand-500 hover:text-brand-600 text-sm flex items-center justify-center gap-1"
                   aria-label="Close color picker"
                 >
-                  <XMarkIcon className="w-4 h-4" /> Close
+                  <X className="w-4 h-4" /> Close
                 </button>
               </div>
             )}

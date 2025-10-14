@@ -1,4 +1,4 @@
-import { TrashIcon } from "@heroicons/react/24/outline";
+import { Trash2 } from "lucide-react";
 import { useRef } from "react";
 
 interface TextListProps {
@@ -73,7 +73,7 @@ const TextList: React.FC<TextListProps> = ({
                   className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-red-200"
                   aria-label={`Delete text: ${text.text}`}
                 >
-                  <TrashIcon className="h-4 w-4" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </li>
             ))}

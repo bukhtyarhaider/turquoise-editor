@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
+import { Upload } from "lucide-react";
 
 interface CanvasDropZoneProps {
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -58,7 +58,7 @@ export const CanvasDropZone: React.FC<CanvasDropZoneProps> = ({
       {!hasImage && !isLoading && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center text-brand-500">
-            <ArrowUpTrayIcon className="w-12 h-12 mx-auto mb-2" />
+            <Upload className="w-12 h-12 mx-auto mb-2" />
             <p className="text-base font-medium">
               {isDraggingOver ? "Drop image here" : "Tap or drag to upload"}
             </p>

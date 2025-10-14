@@ -1,5 +1,5 @@
 import packageJson from "../../package.json";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { X } from "lucide-react";
 
 interface AboutModalProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ const AboutModal: React.FC<AboutModalProps> = ({
           className="absolute top-4 right-4 text-brand-500 hover:text-brand-600"
           aria-label="Close modal"
         >
-          <XMarkIcon className="w-6 h-6" />
+          <X className="w-6 h-6" />
         </button>
         <h2 className="text-2xl font-bold text-brand-700 mb-4">About</h2>
         <div className="text-brand-600 space-y-2">
